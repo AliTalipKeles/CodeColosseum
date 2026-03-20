@@ -18,22 +18,22 @@ public class UserRepository {
     }
 
     public void register(String username,String email,String password_hash){
-        String sql = "INSERT INTO \"user\" (username,email,password_hash) Values(?,?,?)";
+        String sql = "INSERT INTO users (username,email,password_hash) Values(?,?,?)";
         jdbcTemplate.update(sql,username,email,password_hash);
     }
 
     public UserInfoDto getUserInfo(String username){
         try {
-            String sql = "SELECT id,username,email,password_hash,role,created_at,elo_rating,total_matches FROM \"user\" Where username = ?"; 
+            String sql = "SELECT id,username,email,password_hash,role,created_at,elo_rating,total_matches FROM users Where username = ?"; 
             UserInfoDto userLoginDto = jdbcTemplate.queryForObject(sql, (rs,rowNum) -> {
             UserInfoDto dto = new UserInfoDto();
-            dto.setUUID(rs.getObject("id", UUID.class));
+            dto.setId(rs.getObject("id", UUID.class));
             dto.setUsername(rs.getString("username"));
             dto.setPassword(rs.getString("password_hash"));
             dto.setRole(rs.getString("role"));
-            dto.setAccountCreateDate(rs.getTimestamp("created_at").toInstant());
+            dto.setAccount_create_date(rs.getTimestamp("created_at").toInstant());
             dto.setRank(rs.getInt("elo_rating"));
-            dto.setTotalMatches(rs.getInt("total_matches"));
+            dto.setTotal_matches(rs.getInt("total_matches"));
             dto.setEmail(rs.getString("email"));
             return dto;
         },username);
@@ -45,7 +45,7 @@ public class UserRepository {
     }
 
     public void deleteUser(String username){
-        String sql = "DELETE FROM \"user\" Where username = ?";
+        String sql = "DELETE FROM users Where username = ?";
         jdbcTemplate.update(sql, username);
     }
 }
