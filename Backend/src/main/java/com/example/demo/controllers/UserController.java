@@ -81,7 +81,7 @@ public class UserController {
             return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
         }
 
-        if (!claim.get("role").equals("ADMIN")){
+        if (!("ADMIN".equals(claim.get("role")))){
             return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
         }
 

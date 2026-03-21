@@ -33,15 +33,6 @@ public class ProblemService {
         }
     }
 
-    public ResponseEntity<?> getPendingProblems(){
-        try {
-            return ResponseEntity.ok().body(repository.getPendingProblems());
-        } catch (Exception e) {
-            System.out.print(e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("result","Problem could not fetch"));
-        }
-    }
-
     public ResponseEntity<?> setPromblemStatusActive(UUID id,String title){
         try {
             repository.setProblemStatusActive(id,title);
@@ -51,5 +42,26 @@ public class ProblemService {
             return ResponseEntity.badRequest().body(Map.of("result","Problem could not activated"));
         }
     }
+
+    public ResponseEntity<?> setProblemStatusInactive(UUID id,String title){
+        try {
+            repository.setProblemStatusInactive(id,title);
+            return ResponseEntity.ok().body(Map.of("result","Problem set inactive"));
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("result","Problem could not activated"));
+        }
+    }
+
+    public ResponseEntity<?> getProblems(String status,String difficulty){
+         try {
+            
+            return ResponseEntity.ok().body(repository.getProblems(status, difficulty));
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("result","Problem could not fetch"));
+        }
+    }
+    
     
 }

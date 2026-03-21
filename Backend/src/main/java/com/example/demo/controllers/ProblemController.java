@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dtos.ProblemCreateDto;
@@ -45,7 +46,7 @@ public class ProblemController {
         
         
         if(claim == null){
-            return ResponseEntity.status(200).body(Map.of("result","Your Authorization expried"));
+            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expried"));
         }
 
         UUID proposer_id = UUID.fromString(claim.getSubject());
@@ -53,8 +54,29 @@ public class ProblemController {
         return service.createProblemRequest(proposer_id,dto);
     }
     
-    @GetMapping("/getpending")
-    public ResponseEntity<?> getMethodName(HttpServletRequest request) {
+    @GetMapping("/get")
+    public ResponseEntity<?> getProblems(
+                @RequestParam(required = false) String status,
+                @RequestParam(required = false) String difficulty,
+                HttpServletRequest request){
+        // auth kontrolün (senin mevcut koddan)
+        String authHeader = request.getHeader("Authorization");
+
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return ResponseEntity.status(401).body(Map.of("result","Please Login again"));
+        }
+
+        String token = authHeader.substring(7);
+        Claims claim = JwtUtil.validateToken(token);
+
+        if(claim == null){
+            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
+        }
+        return service.getProblems(status, difficulty);
+        }
+
+    @PutMapping("setactive/{title}")
+    public ResponseEntity<?> setProblemActive(@PathVariable String title,HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
@@ -68,35 +90,34 @@ public class ProblemController {
             return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
         }
 
-        if (!claim.get("role").equals("ADMIN")){
-            return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
-        }
-
-        return service.getPendingProblems();
-    }
-    
-    @PutMapping("/{title}")
-    public ResponseEntity<?> putMethodName(@PathVariable String title,HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            return ResponseEntity.status(401).body(Map.of("result","Please Login again"));
-        }
-
-        String token = authHeader.substring(7);
-        Claims claim = JwtUtil.validateToken(token);
-
-        if(claim == null){
-            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
-        }
-
-        if (!claim.get("role").equals("ADMIN")){
+        if (!("ADMIN".equals(claim.get("role")))){
             return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
         }
 
         return service.setPromblemStatusActive(UUID.fromString(claim.getSubject()),title);
-        
-        
     }
 
+    @PutMapping("setinactive/{title}")
+    public ResponseEntity<?> setProblemInactive(@PathVariable String title,HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return ResponseEntity.status(401).body(Map.of("result","Please Login again"));
+        }
+
+        String token = authHeader.substring(7);
+        Claims claim = JwtUtil.validateToken(token);
+
+        if(claim == null){
+            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
+        }
+
+        if (!("ADMIN".equals(claim.get("role")))){
+            return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
+        }
+
+        return service.setProblemStatusInactive(UUID.fromString(claim.getSubject()),title);
+    }
+    
+    
 }
