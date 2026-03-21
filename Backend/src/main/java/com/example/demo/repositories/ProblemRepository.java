@@ -45,7 +45,6 @@ public class ProblemRepository {
     
     public List<GetProblemDto> getProblems(String status,String difficulty){
         String sql = "SELECT id,title,description,input_format,output_format,limits,time_limit_s,memory_limit_mb,difficulty,status FROM problems WHERE 1=1 ";
-        boolean is_status_true = false;
         if("PENDING".equals(status) || "ACTIVE".equals(status) || "INACTIVE".equals(status)){
             sql = sql.concat("AND status = \'"+status+"\'");
         }
