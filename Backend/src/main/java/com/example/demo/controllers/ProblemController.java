@@ -32,7 +32,7 @@ public class ProblemController {
     public ProblemController(ProblemService service) {
         this.service = service;
     }
-
+    
     @PostMapping("/createrequest")
     public ResponseEntity<?> createProblemRequest(HttpServletRequest request,@RequestBody ProblemCreateDto dto) {
         String authHeader = request.getHeader("Authorization");
@@ -118,6 +118,30 @@ public class ProblemController {
 
         return service.setProblemStatusInactive(UUID.fromString(claim.getSubject()),title);
     }
+
+    @PostMapping("addtestcase")
+    public ResponseEntity<?> addTestCase(HttpServletRequest request,@RequestBody Map<String,?> data) {
+        String authHeader = request.getHeader("Authorization");
+
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return ResponseEntity.status(401).body(Map.of("result","Please Login again"));
+        }
+
+        String token = authHeader.substring(7);
+        Claims claim = JwtUtil.validateToken(token);
+
+        if(claim == null){
+            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
+        }
+
+        if (!("ADMIN".equals(claim.get("role")))){
+            return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
+        }
+        
+        return service.addTestCase(data);
+        
+    }
     
-    
+
+
 }

@@ -25,8 +25,8 @@ public class ProblemService {
             String limits = dto.getLimits();
             String difficulty = dto.getDifficulty();
 
-            repository.createProblemRequest(title,description,input_format,output_format,limits,difficulty,proposer_id);
-            return ResponseEntity.ok().body(Map.of("result","Request sended"));
+            UUID id = repository.createProblemRequest(title,description,input_format,output_format,limits,difficulty,proposer_id);
+            return ResponseEntity.ok().body(Map.of("result",id));
         } catch (Exception e) {
             System.out.print(e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("result","Problem request could not created"));
@@ -54,7 +54,7 @@ public class ProblemService {
     }
 
     public ResponseEntity<?> getProblems(String status,String difficulty){
-         try {
+        try {
             
             return ResponseEntity.ok().body(repository.getProblems(status, difficulty));
         } catch (Exception e) {
@@ -63,5 +63,19 @@ public class ProblemService {
         }
     }
     
+    public ResponseEntity<?> addTestCase(Map<String,?> data){
+        try{
+            UUID id = UUID.fromString((String)data.get("problem_id"));
+            String stdin = (String) data.get("stdin");
+            String expected_stdout = (String) data.get("expected_stdout");
+            
+            repository.addTestCase(id,stdin,expected_stdout);
+
+            return ResponseEntity.ok().body(Map.of("result","Test case Added"));
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(Map.of("result","Test case could not added"));
+        }
+    }
+
     
 }

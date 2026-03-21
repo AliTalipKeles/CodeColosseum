@@ -1,8 +1,10 @@
 package com.example.demo.repositories;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +19,7 @@ public class ProblemRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void createProblemRequest(
+    public UUID createProblemRequest(
     String title,
     String description,
     String input_format,
@@ -26,13 +28,18 @@ public class ProblemRepository {
     String difficulty,
     UUID proposer_id)
     {
+
+        UUID id = UUID.randomUUID();
+
         String sql = """
             INSERT INTO problems 
-            (title, description, input_format, output_format, limits, difficulty, proposer_id)
-            VALUES (?, ?, ?, ?, ?, ?::problem_difficulty, ?)
+            (
+            id,title, description, input_format, output_format, limits, difficulty, proposer_id)
+            VALUES (?,?, ?, ?, ?, ?, ?::problem_difficulty, ?)
         """;
 
         jdbcTemplate.update(sql,
+            id,
             title,
             description,
             input_format,
@@ -41,6 +48,7 @@ public class ProblemRepository {
             difficulty.toUpperCase(),
             proposer_id
         );
+        return id;
     }
     
     public List<GetProblemDto> getProblems(String status,String difficulty){
@@ -104,6 +112,10 @@ public class ProblemRepository {
         jdbcTemplate.update(sql,id,title);
     }
 
-    
+    public void addTestCase(UUID problem_id, String stdin,String expected_stdout){
+        String sql = "INSERT INTO test_case (problem_id,stdin,expected_stdout) VALUES(?,?,?)";
+        jdbcTemplate.update(sql,problem_id,stdin,expected_stdout);
+
+    }
 
 }
