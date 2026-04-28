@@ -49,7 +49,7 @@ public class UserService {
                     loginDto.getUsername(),
                     loginDto.getRole()
                 );
-                return ResponseEntity.ok(Map.of("token", token));
+                return ResponseEntity.ok(Map.of("data", token));
             } else {
                 return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -76,7 +76,7 @@ public class UserService {
         user.remove("email");
         user.remove("id");
 
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok().body(Map.of("data",user));
     }
 
     public ResponseEntity<?> deleteUser(String username){

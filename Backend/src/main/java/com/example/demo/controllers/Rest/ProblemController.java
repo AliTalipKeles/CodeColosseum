@@ -1,4 +1,4 @@
-package com.example.demo.controllers;
+package com.example.demo.controllers.Rest;
 
 import java.util.Map;
 import java.util.UUID;
@@ -141,7 +141,15 @@ public class ProblemController {
         return service.addTestCase(data);
         
     }
+
+    @GetMapping("getTestCases")
+    public ResponseEntity<?> getTestCases(@RequestParam(required = true) String id) {
+        try {
+            UUID problem_id = UUID.fromString(id);
+            return service.getTestCases(problem_id);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("result","You should add parameter named \'id\'"));
+        }
+    }   
     
-
-
 }

@@ -1,14 +1,13 @@
 package com.example.demo.repositories;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.dtos.GetProblemDto;
+import com.example.demo.dtos.TestCaseDto;
 
 @Repository
 public class ProblemRepository {
@@ -48,6 +47,7 @@ public class ProblemRepository {
             difficulty.toUpperCase(),
             proposer_id
         );
+
         return id;
     }
     
@@ -75,7 +75,7 @@ public class ProblemRepository {
             problemDto.setMemory_limit_mb(rs.getInt("memory_limit_mb"));
             problemDto.setDifficulty(rs.getString("difficulty"));
             problemDto.setStatus(rs.getString("status"));
-            return problemDto;
+            return (problemDto);
         }
     );
         return problems;
@@ -118,4 +118,22 @@ public class ProblemRepository {
 
     }
 
+    public List<TestCaseDto> getTestCases(UUID id){
+        String sql = "SELECT * FROM test_case WHERE problem_id = ?";
+        List<TestCaseDto> testCaseDtos = jdbcTemplate.query(
+         sql,
+        (rs, rowNum) -> {
+            TestCaseDto dto = new TestCaseDto();
+            dto.setId(rs.getObject("id", UUID.class));
+            dto.setProblem_id(rs.getObject("problem_id",UUID.class));
+            dto.setStdin(rs.getString("stdin"));
+            dto.setExpected_stdout(rs.getString("expected_stdout"));
+
+            return dto;
+        },
+        id
+        );
+
+        return testCaseDtos;
+    }
 }

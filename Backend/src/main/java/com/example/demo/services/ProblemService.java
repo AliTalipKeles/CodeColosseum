@@ -26,7 +26,7 @@ public class ProblemService {
             String difficulty = dto.getDifficulty();
 
             UUID id = repository.createProblemRequest(title,description,input_format,output_format,limits,difficulty,proposer_id);
-            return ResponseEntity.ok().body(Map.of("result",id));
+            return ResponseEntity.ok().body(Map.of("data",id));
         } catch (Exception e) {
             System.out.print(e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("result","Problem request could not created"));
@@ -56,7 +56,7 @@ public class ProblemService {
     public ResponseEntity<?> getProblems(String status,String difficulty){
         try {
             
-            return ResponseEntity.ok().body(repository.getProblems(status, difficulty));
+            return ResponseEntity.ok().body(Map.of("data",repository.getProblems(status, difficulty)));
         } catch (Exception e) {
             System.out.print(e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("result","Problem could not fetch"));
@@ -75,6 +75,15 @@ public class ProblemService {
         }catch(Exception e){
             return ResponseEntity.badRequest().body(Map.of("result","Test case could not added"));
         }
+    }
+
+    public ResponseEntity<?> getTestCases(UUID id){
+        try{
+            return ResponseEntity.ok().body(Map.of("data",repository.getTestCases(id)));
+        }catch(Exception e){
+            return ResponseEntity.badRequest().body(Map.of("result","Test cases could not fetch"));
+        }
+
     }
 
     
