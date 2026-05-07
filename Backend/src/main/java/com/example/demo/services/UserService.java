@@ -73,8 +73,6 @@ public class UserService {
         }
 
         Map<String,Object> user = dto.toMapWithoutPassword();
-        user.remove("email");
-        user.remove("id");
 
         return ResponseEntity.ok().body(Map.of("data",user));
     }
