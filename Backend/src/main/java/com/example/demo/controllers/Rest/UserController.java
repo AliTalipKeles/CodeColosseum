@@ -106,4 +106,6 @@ public class UserController {
 
         return service.getUserInfo(username);
     }
+
+    
 }
