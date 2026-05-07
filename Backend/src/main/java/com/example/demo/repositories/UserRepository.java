@@ -1,5 +1,6 @@
 package com.example.demo.repositories;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.dao.DataAccessException;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.dtos.UserInfoDto;
+import com.example.demo.dtos.UserLeaderboardDto;
 
 @Repository
 public class UserRepository {
@@ -32,7 +34,7 @@ public class UserRepository {
             dto.setPassword(rs.getString("password_hash"));
             dto.setRole(rs.getString("role"));
             dto.setAccount_create_date(rs.getTimestamp("created_at").toInstant());
-            dto.setRank(rs.getInt("elo_rating"));
+            dto.setElo(rs.getInt("elo_rating"));
             dto.setTotal_matches(rs.getInt("total_matches"));
             dto.setEmail(rs.getString("email"));
             return dto;
@@ -41,7 +43,20 @@ public class UserRepository {
         } catch (DataAccessException e) {
             return null;
         }
-        
+    }
+    public List<UserLeaderboardDto> getLeaderboard(){
+        try {
+    String sql = "SELECT username, elo_rating FROM users ORDER BY elo_rating DESC LIMIT 10";
+    List<UserLeaderboardDto> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+        UserLeaderboardDto dto = new UserLeaderboardDto();
+        dto.setUsername(rs.getString("username"));
+        dto.setElo(rs.getInt("elo_rating"));
+                return dto;
+            });
+            return list;
+        } catch (DataAccessException e) {
+            return null;
+        }
     }
 
     public void deleteUser(String username){
