@@ -1,5 +1,6 @@
 import { useState } from "react"
 import api from "../services/api"
+import { Navigate } from "react-router-dom"
 
 function Login() {
   const [username, setUsername] = useState("")
@@ -17,6 +18,8 @@ function Login() {
       })
 
       localStorage.setItem("token", res.data.data)
+
+      Navigate("/dashboard")
 
       alert("Login success")
     } catch (err) {
@@ -45,6 +48,8 @@ function Login() {
 
         <button type="submit">Login</button>
       </form>
+
+      <button onClick={() => navigate("/register")}>Register</button>
 
       {error && <p>{error}</p>}
     </div>

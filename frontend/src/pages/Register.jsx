@@ -18,6 +18,9 @@ function Register() {
       })
 
       setMessage("Registered successfully.")
+
+      Navigate("/login")
+
     } catch (err) {
       setMessage("Registration failed")
     }
