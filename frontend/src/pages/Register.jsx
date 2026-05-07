@@ -26,7 +26,7 @@ function Register() {
       
       setTimeout(() => {
         navigate("/login")
-      }, 1500)
+      }, 500)
 
     } catch (err) {
       setError("Registration failed. Please try again.")

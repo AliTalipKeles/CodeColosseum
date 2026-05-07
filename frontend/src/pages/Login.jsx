@@ -6,11 +6,13 @@ function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")
+    setMessage("")
 
     try {
       const res = await api.post("/user/login", {
@@ -20,11 +22,14 @@ function Login() {
 
       localStorage.setItem("token", res.data.data)
 
-      Navigate("/dashboard")
+      setMessage("logged in succesfully")
+      setTimeout(() => {
+        navigate("/dashboard")
+      }, 500)
 
-      alert("Login success")
     } catch (err) {
       setError("Invalid username or password")
+      console.error("login error:", err)
     }
   }
 
@@ -52,7 +57,8 @@ function Login() {
 
       <button onClick={() => navigate("/register")}>Register</button>
 
-      {error && <p>{error}</p>}
+      {message && <p style={{ color: "green" }}>{message}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   )
 }
