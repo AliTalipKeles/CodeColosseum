@@ -2,7 +2,7 @@ import { useState } from "react"
 import api from "../services/api"
 
 function Login() {
-  const [username, setUsename] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
@@ -11,12 +11,12 @@ function Login() {
     setError("")
 
     try {
-      const res = await api.post("/login", {
+      const res = await api.post("/user/login", {
         username,
         password,
       })
 
-      localStorage.setItem("token", res.data.token)
+      localStorage.setItem("token", res.data.data)
 
       alert("Login success")
     } catch (err) {
@@ -30,7 +30,7 @@ function Login() {
 
       <form onSubmit={handleLogin}>
         <input
-          type="username"
+          type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
