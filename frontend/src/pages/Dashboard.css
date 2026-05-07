@@ -1,0 +1,28 @@
+.user-info-card {
+    max-width: fit-content;
+    max-height: fit-content;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 5%;
+}
+
+.user-info-title {
+    display: flex;
+    align-items:baseline;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.username {
+    font-size: 36px;
+}
+
+.id {
+    color: hsla(0, 0%, 0%, 0.4);
+}
+
+.elo {
+    padding-left: 35px;
+    font-size: 32px;
+    color: red;
+}

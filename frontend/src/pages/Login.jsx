@@ -1,14 +1,18 @@
 import { useState } from "react"
 import api from "../services/api"
+import { useNavigate } from "react-router-dom"
 
 function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
+  const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setError("")
+    setMessage("")
 
     try {
       const res = await api.post("/user/login", {
@@ -18,9 +22,14 @@ function Login() {
 
       localStorage.setItem("token", res.data.data)
 
-      alert("Login success")
+      setMessage("logged in succesfully")
+      setTimeout(() => {
+        navigate("/dashboard")
+      }, 500)
+
     } catch (err) {
       setError("Invalid username or password")
+      console.error("login error:", err)
     }
   }
 
@@ -46,7 +55,10 @@ function Login() {
         <button type="submit">Login</button>
       </form>
 
-      {error && <p>{error}</p>}
+      <button onClick={() => navigate("/register")}>Register</button>
+
+      {message && <p style={{ color: "green" }}>{message}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   )
 }
