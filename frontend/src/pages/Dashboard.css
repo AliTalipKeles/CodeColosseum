@@ -1,9 +1,16 @@
+body {
+  background-color: #f8f9fa;
+  color: black;
+  font-family: Arial, sans-serif;
+}
+
 .user-info-card {
     max-width: fit-content;
     max-height: fit-content;
     padding: 10px;
     border: 2px solid black;
     border-radius: 5%;
+    margin: 5px;
 }
 
 .user-info-title {
@@ -25,4 +32,67 @@
     padding-left: 35px;
     font-size: 32px;
     color: red;
+}
+
+.leaderboard-container {
+    max-width: fit-content;
+    padding: 15px;
+    border: 2px solid black;
+    border-radius: 5%;
+    background-color: white;
+    margin: 5px;
+}
+
+.leaderboard-title {
+    font-size: 32px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid black;
+    margin-bottom: 10px;
+}
+
+.leaderboard-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.leaderboard-table th {
+    font-size: 22px;
+    padding: 10px 20px;
+    text-align: left;
+    border-bottom: 2px solid black;
+}
+
+.leaderboard-table td {
+    padding: 12px 20px;
+    font-size: 20px;
+    border-bottom: 1px solid hsla(0, 0%, 0%, 0.2);
+}
+
+.leaderboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+.leaderboard-table tbody tr:hover {
+    background-color: hsla(0, 0%, 0%, 0.04);
+}
+
+.rank {
+    font-weight: bold;
+}
+
+.elo-cell {
+    color: red;
+    font-weight: bold;
+}
+
+.first{
+    color: gold;
+}
+
+.second{
+    color: silver;
+}
+
+.third{
+    color: #cd7f32;
 }
