@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import api from "../services/api"
 
 function Register() {
@@ -6,9 +7,13 @@ function Register() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
 
   const handleRegister = async (e) => {
     e.preventDefault()
+    setMessage("")
+    setError("")
 
     try {
       await api.post("/user/register", {
@@ -17,12 +22,15 @@ function Register() {
         password,
       })
 
-      setMessage("Registered successfully.")
-
-      Navigate("/login")
+      setMessage("Registered successfully! Redirecting to login...")
+      
+      setTimeout(() => {
+        navigate("/login")
+      }, 1500)
 
     } catch (err) {
-      setMessage("Registration failed")
+      setError("Registration failed. Please try again.")
+      console.error("Registration error:", err)
     }
   }
 
@@ -32,9 +40,11 @@ function Register() {
 
       <form onSubmit={handleRegister}>
         <input
+          type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
 
         <input
@@ -42,6 +52,7 @@ function Register() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
 
         <input
@@ -49,12 +60,14 @@ function Register() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
 
         <button type="submit">Register</button>
       </form>
 
-      {message && <p>{message}</p>}
+      {message && <p style={{ color: "green" }}>{message}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   )
 }

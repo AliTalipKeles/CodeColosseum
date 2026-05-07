@@ -1,110 +1,28 @@
-body {
-    margin: 0;
-    background-color: #0f172a;
-    font-family: Arial, Helvetica, sans-serif;
+.user-info-card {
+    max-width: fit-content;
+    max-height: fit-content;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 5%;
 }
 
-.dashboard {
-    min-height: 100vh;
+.user-info-title {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 30px;
-}
-
-.dashboard-card {
-    width: 700px;
-    background-color: #1e293b;
-    border-radius: 18px;
-    padding: 35px;
-    color: white;
-    box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.4);
-    border: 1px solid #334155;
-}
-
-.dashboard-title {
-    margin: 0;
-    margin-bottom: 35px;
-    font-size: 42px;
-    font-weight: bold;
-}
-
-.profile-section {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
-
-.rank-circle {
-    width: 85px;
-    height: 85px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #9333ea);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.profile-info {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.username-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items:baseline;
+    justify-content: space-between;
+    padding: 10px;
 }
 
 .username {
-    font-size: 34px;
-    font-weight: bold;
+    font-size: 36px;
 }
 
-.admin-tag {
-    background-color: #dc2626;
-    padding: 5px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: bold;
+.id {
+    color: hsla(0, 0%, 0%, 0.4);
 }
 
-.user-id {
-    color: #94a3b8;
-    font-size: 15px;
-}
-
-.divider {
-    margin: 30px 0;
-    border: none;
-    height: 1px;
-    background-color: #334155;
-}
-
-.info-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.info-item {
-    background-color: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 18px 20px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    font-size: 18px;
-}
-
-.label {
-    color: #94a3b8;
-    font-weight: bold;
+.elo {
+    padding-left: 35px;
+    font-size: 32px;
+    color: red;
 }

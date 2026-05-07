@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import "./Dashboard.css"
 import api from "../services/api"
 
 function Dashboard() {
@@ -12,7 +13,7 @@ function Dashboard() {
         const fetchUser = async () => {
             try {
                 const res = await api.get("/user/me")
-                setUser(res.data)
+                setUser(res.data.data)
 
             } catch (err) {
                 setError("Failed to load user info")
@@ -35,51 +36,20 @@ function Dashboard() {
         return <h1>{error}</h1>
     }
 
+    let normalised_date = user.account_create_date.slice(0,10);
+
     return (
-        <div className="dashboard">
-            <div className="dashboard-card">
-                <h1 className="dashboard-title">Dashboard</h1>
-
-                <div className="profile-section">
-                    <div className="rank-circle">{user.rank}</div>
-
-                    <div className="profile-info">
-                        <div className="username-row">
-                            <span className="username"> {user.username} </span>
-
-                            {user.role === "ADMIN" && (
-                                <span className="admin-tag"> ADMIN </span>
-                            )}
-                        </div>
-
-                        <span className="user-id"> ID: {user.id} </span>
-                    </div>
-                </div>
-
-                <hr className="divider" />
-
-                <div className="info-list">
-                    <div className="info-item">
-                        <span className="label"> Account Date </span>
-
-                        <span> {user.account_create_date} </span>
-                    </div>
-
-                    <div className="info-item">
-                        <span className="label"> Email </span>
-
-                        <span> {user.email} </span>
-                    </div>
-
-                    <div className="info-item">
-                        <span className="label"> Total Matches </span>
-
-                        <span> {user.total_matches} </span>
-                    </div>
-                </div>
+        <div className="user-info-card">
+            <div className="user-info-title">
+                <div className="username">{user.username}</div>
+                <div className="id">{user.id}</div>
+                <div className="elo">{user.elo}</div>
             </div>
+            <hr></hr>
+            <div>Total matches: {user.total_matches}</div>
+            <div>Email: {user.email}</div>
+            <div>Account date: {normalised_date}</div>
         </div>
-
     )
 }
 
