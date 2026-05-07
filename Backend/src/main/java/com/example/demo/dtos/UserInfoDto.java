@@ -17,7 +17,7 @@ public class UserInfoDto {
     private String password;
     private String role;
     private Instant account_create_date;
-    private int rank;
+    private int elo;
     private int total_matches;
 
     public Map<String, Object> toMapWithoutPassword() {
@@ -28,9 +28,12 @@ public class UserInfoDto {
         map.put("email", this.email);
         map.put("role", this.role);
         map.put("account_create_date", this.account_create_date);
-        map.put("rank", this.rank);
+        map.put("elo", this.elo);
         map.put("total_matches", this.total_matches);
 
     return map;
+    }
+
+    
 }
-}
+
