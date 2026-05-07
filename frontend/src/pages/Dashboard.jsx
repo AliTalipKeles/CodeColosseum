@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import "./Dashboard.css"
+import { Link } from "react-router-dom"
 import api from "../services/api"
 
 function Dashboard() {
@@ -78,7 +79,11 @@ function Dashboard() {
                                             : index === 2
                                                 ? "third"
                                                 : ""
-                                }>{user.username}</td>
+                                }>
+                                    <Link to={`/user/${user.username}`} className="username-link">
+                                        {user.username}
+                                    </Link>
+                                </td>
                                 <td>{user.elo}</td>
                             </tr>
                         ))}

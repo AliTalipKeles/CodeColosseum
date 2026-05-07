@@ -4,6 +4,11 @@ body {
   font-family: Arial, sans-serif;
 }
 
+.username-link {
+    text-decoration: none;
+    color: inherit;
+}
+
 .user-info-card {
     max-width: fit-content;
     max-height: fit-content;
