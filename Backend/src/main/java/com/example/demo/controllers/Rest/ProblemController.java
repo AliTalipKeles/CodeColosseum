@@ -138,10 +138,6 @@ public class ProblemController {
             return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
         }
 
-        if (!("ADMIN".equals(claim.get("role")))){
-            return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
-        }
-        
         return service.addTestCase(data);
         
     }
