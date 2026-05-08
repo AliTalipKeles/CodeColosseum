@@ -12,10 +12,6 @@ function Dashboard() {
     const [error, setError] = useState("")
     const navigate = useNavigate()
 
-    if (localStorage.getItem("token") == null) {
-        navigate("/login")
-    }
-
     useEffect(() => {
 
         const fetchUser = async () => {
@@ -27,6 +23,7 @@ function Dashboard() {
                 setLeaderboard(leaderboard_res.data.data)
 
             } catch (err) {
+                navigate("/login")
                 setError("Failed to load dashboard")
 
             } finally {
