@@ -20,10 +20,10 @@ public class ProblemRepository {
 
     public UUID createProblemRequest(
     String title,
-    String description,
+    String statement,
     String input_format,
     String output_format,
-    String limits,
+    String constraints,
     String difficulty,
     UUID proposer_id)
     {
@@ -33,17 +33,17 @@ public class ProblemRepository {
         String sql = """
             INSERT INTO problems 
             (
-            id,title, description, input_format, output_format, limits, difficulty, proposer_id)
+            id,title, statement, input_format, output_format, constraints, difficulty, proposer_id)
             VALUES (?,?, ?, ?, ?, ?, ?::problem_difficulty, ?)
         """;
 
         jdbcTemplate.update(sql,
             id,
             title,
-            description,
+            statement,
             input_format,
             output_format,
-            limits,
+            constraints,
             difficulty.toUpperCase(),
             proposer_id
         );
@@ -52,8 +52,8 @@ public class ProblemRepository {
     }
     
     public List<GetProblemDto> getProblems(String status,String difficulty){
-        String sql = "SELECT id,title,description,input_format,output_format,limits,time_limit_s,memory_limit_mb,difficulty,status FROM problems WHERE 1=1 ";
-        if("PENDING".equals(status) || "ACTIVE".equals(status) || "INACTIVE".equals(status)){
+        String sql = "SELECT id,title,statement,input_format,output_format,constraints,time_limit_s,memory_limit_mb,difficulty,status FROM problems WHERE 1=1 ";
+        if("PENDING".equals(status) || "APPROVED".equals(status) || "REJECTED".equals(status)){
             sql = sql.concat("AND status = \'"+status+"\'");
         }
         if("EASY".equals(difficulty) || "MEDIUM".equals(difficulty) ||"HARD".equals(difficulty)){
@@ -67,10 +67,10 @@ public class ProblemRepository {
             GetProblemDto problemDto = new GetProblemDto();
             problemDto.setId(rs.getObject("id", UUID.class));
             problemDto.setTitle(rs.getString("title"));
-            problemDto.setDescription(rs.getString("description"));
+            problemDto.setStatement(rs.getString("statement"));
             problemDto.setInput_format(rs.getString("input_format"));
             problemDto.setOutput_format(rs.getString("output_format"));
-            problemDto.setLimits(rs.getString("limits"));
+            problemDto.setConstraints(rs.getString("constraints"));
             problemDto.setTime_limit_s(rs.getInt("time_limit_s"));
             problemDto.setMemory_limit_mb(rs.getInt("memory_limit_mb"));
             problemDto.setDifficulty(rs.getString("difficulty"));
@@ -81,17 +81,42 @@ public class ProblemRepository {
         return problems;
     }
 
-    public List<GetProblemDto> getAllProblems(){
+
+    public List<GetProblemDto> getProblem(UUID id){
+        String sql = "SELECT id,title,statement,input_format,output_format,constraints,time_limit_s,memory_limit_mb,difficulty,status FROM problems WHERE id = \'"+id+"\'";
+        
         List<GetProblemDto> problems = jdbcTemplate.query(
-        "SELECT id,title,description,input_format,output_format,limits,time_limit_s,memory_limit_mb,difficulty,status FROM problems",
+         sql,
         (rs, rowNum) -> {
             GetProblemDto problemDto = new GetProblemDto();
             problemDto.setId(rs.getObject("id", UUID.class));
             problemDto.setTitle(rs.getString("title"));
-            problemDto.setDescription(rs.getString("description"));
+            problemDto.setStatement(rs.getString("statement"));
             problemDto.setInput_format(rs.getString("input_format"));
             problemDto.setOutput_format(rs.getString("output_format"));
-            problemDto.setLimits(rs.getString("limits"));
+            problemDto.setConstraints(rs.getString("constraints"));
+            problemDto.setTime_limit_s(rs.getInt("time_limit_s"));
+            problemDto.setMemory_limit_mb(rs.getInt("memory_limit_mb"));
+            problemDto.setDifficulty(rs.getString("difficulty"));
+            problemDto.setStatus(rs.getString("status"));
+            return (problemDto);
+        }
+    );
+        return problems;
+    }
+
+
+    public List<GetProblemDto> getAllProblems(){
+        List<GetProblemDto> problems = jdbcTemplate.query(
+        "SELECT id,title,statement,input_format,output_format,constraints,time_limit_s,memory_limit_mb,difficulty,status FROM problems",
+        (rs, rowNum) -> {
+            GetProblemDto problemDto = new GetProblemDto();
+            problemDto.setId(rs.getObject("id", UUID.class));
+            problemDto.setTitle(rs.getString("title"));
+            problemDto.setStatement(rs.getString("statement"));
+            problemDto.setInput_format(rs.getString("input_format"));
+            problemDto.setOutput_format(rs.getString("output_format"));
+            problemDto.setConstraints(rs.getString("constraints"));
             problemDto.setTime_limit_s(rs.getInt("time_limit_s"));
             problemDto.setMemory_limit_mb(rs.getInt("memory_limit_mb"));
             problemDto.setDifficulty(rs.getString("difficulty"));
@@ -102,24 +127,26 @@ public class ProblemRepository {
         return problems;
     }
 
-    public void setProblemStatusActive(UUID id,String title){
-        String sql = "UPDATE problems SET status = 'ACTIVE'::problem_status , reviewer_id = ?  WHERE title = ?";
+
+
+    public void setProblemStatusApproved(UUID id,String title){
+        String sql = "UPDATE problems SET status = 'APPROVED'::problem_status , reviewer_id = ?  WHERE title = ?";
         jdbcTemplate.update(sql,id,title);
     }
 
-    public void setProblemStatusInactive(UUID id,String title){
-        String sql = "UPDATE problems SET status = 'INACTIVE'::problem_status , reviewer_id = ?  WHERE title = ?";
+    public void setProblemStatusRejected(UUID id,String title){
+        String sql = "UPDATE problems SET status = 'REJECTED'::problem_status , reviewer_id = ?  WHERE title = ?";
         jdbcTemplate.update(sql,id,title);
     }
 
     public void addTestCase(UUID problem_id, String stdin,String expected_stdout){
-        String sql = "INSERT INTO test_case (problem_id,stdin,expected_stdout) VALUES(?,?,?)";
+        String sql = "INSERT INTO test_cases (problem_id,stdin,expected_stdout) VALUES(?,?,?)";
         jdbcTemplate.update(sql,problem_id,stdin,expected_stdout);
 
     }
 
     public List<TestCaseDto> getTestCases(UUID id){
-        String sql = "SELECT * FROM test_case WHERE problem_id = ?";
+        String sql = "SELECT * FROM test_cases WHERE problem_id = ?";
         List<TestCaseDto> testCaseDtos = jdbcTemplate.query(
          sql,
         (rs, rowNum) -> {

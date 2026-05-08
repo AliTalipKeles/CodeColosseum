@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProblemCreateDto {
     private String title;
-    private  String description;
+    private  String statement;
     private  String input_format;
     private  String output_format;
-    private  String limits;
+    private  String constraints;
     private  String difficulty;
 }
 

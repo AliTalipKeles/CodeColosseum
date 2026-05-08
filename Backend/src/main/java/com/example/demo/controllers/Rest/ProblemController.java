@@ -53,9 +53,10 @@ public class ProblemController {
 
         return service.createProblemRequest(proposer_id,dto);
     }
-    
+      
     @GetMapping("/get")
     public ResponseEntity<?> getProblems(
+                @RequestParam(required = false) String id,
                 @RequestParam(required = false) String status,
                 @RequestParam(required = false) String difficulty,
                 HttpServletRequest request){
@@ -72,11 +73,14 @@ public class ProblemController {
         if(claim == null){
             return ResponseEntity.status(401).body(Map.of("result","Your Authorization expired"));
         }
-        return service.getProblems(status, difficulty);
+        if(id == null){
+            return service.getProblems(status, difficulty);
         }
+        return service.getProblem(UUID.fromString(id));    
+    }
 
-    @PutMapping("setactive/{title}")
-    public ResponseEntity<?> setProblemActive(@PathVariable String title,HttpServletRequest request) {
+    @PutMapping("setapproved/{title}")
+    public ResponseEntity<?> setProblemApproved(@PathVariable String title,HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
@@ -94,10 +98,10 @@ public class ProblemController {
             return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
         }
 
-        return service.setPromblemStatusActive(UUID.fromString(claim.getSubject()),title);
+        return service.setPromblemStatusApproved(UUID.fromString(claim.getSubject()),title);
     }
 
-    @PutMapping("setinactive/{title}")
+    @PutMapping("setrejected/{title}")
     public ResponseEntity<?> setProblemInactive(@PathVariable String title,HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
@@ -116,7 +120,7 @@ public class ProblemController {
             return ResponseEntity.status(403).body(Map.of("result","Only admins can perform this operation."));
         }
 
-        return service.setProblemStatusInactive(UUID.fromString(claim.getSubject()),title);
+        return service.setProblemStatusRejected(UUID.fromString(claim.getSubject()),title);
     }
 
     @PostMapping("addtestcase")

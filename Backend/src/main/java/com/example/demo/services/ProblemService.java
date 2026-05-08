@@ -19,13 +19,13 @@ public class ProblemService {
     public ResponseEntity<?> createProblemRequest(UUID proposer_id,ProblemCreateDto dto){
         try {
             String title = dto.getTitle();
-            String description = dto.getDescription();
+            String statement = dto.getStatement();
             String input_format = dto.getInput_format();
             String output_format = dto.getOutput_format();
-            String limits = dto.getLimits();
+            String constraints = dto.getConstraints();
             String difficulty = dto.getDifficulty();
 
-            UUID id = repository.createProblemRequest(title,description,input_format,output_format,limits,difficulty,proposer_id);
+            UUID id = repository.createProblemRequest(title,statement,input_format,output_format,constraints,difficulty,proposer_id);
             return ResponseEntity.ok().body(Map.of("data",id));
         } catch (Exception e) {
             System.out.print(e.getMessage());
@@ -33,23 +33,23 @@ public class ProblemService {
         }
     }
 
-    public ResponseEntity<?> setPromblemStatusActive(UUID id,String title){
+    public ResponseEntity<?> setPromblemStatusApproved(UUID id,String title){
         try {
-            repository.setProblemStatusActive(id,title);
-            return ResponseEntity.ok().body(Map.of("result","Problem set active"));
+            repository.setProblemStatusApproved(id,title);
+            return ResponseEntity.ok().body(Map.of("result","Problem set Approved"));
         } catch (Exception e) {
             System.out.print(e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("result","Problem could not activated"));
+            return ResponseEntity.badRequest().body(Map.of("result","Problem could not approved"));
         }
     }
 
-    public ResponseEntity<?> setProblemStatusInactive(UUID id,String title){
+    public ResponseEntity<?> setProblemStatusRejected(UUID id,String title){
         try {
-            repository.setProblemStatusInactive(id,title);
-            return ResponseEntity.ok().body(Map.of("result","Problem set inactive"));
+            repository.setProblemStatusRejected(id,title);
+            return ResponseEntity.ok().body(Map.of("result","Problem set Rejected"));
         } catch (Exception e) {
             System.out.print(e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("result","Problem could not activated"));
+            return ResponseEntity.badRequest().body(Map.of("result","Problem could not Rejected"));
         }
     }
 
@@ -62,8 +62,16 @@ public class ProblemService {
             return ResponseEntity.badRequest().body(Map.of("result","Problem could not fetch"));
         }
     }
+
+    public ResponseEntity<?> getProblem(UUID id){
+        try {
+            return ResponseEntity.ok().body(Map.of("data",repository.getProblem(id)));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("result","Problem could not fetch"));
+        }
+    }
     
-    public ResponseEntity<?> addTestCase(Map<String,?> data){
+    public ResponseEntity<?>addTestCase(Map<String,?> data){
         try{
             UUID id = UUID.fromString((String)data.get("problem_id"));
             String stdin = (String) data.get("stdin");
@@ -73,6 +81,7 @@ public class ProblemService {
 
             return ResponseEntity.ok().body(Map.of("result","Test case Added"));
         }catch(Exception e){
+            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("result","Test case could not added"));
         }
     }
@@ -81,6 +90,7 @@ public class ProblemService {
         try{
             return ResponseEntity.ok().body(Map.of("data",repository.getTestCases(id)));
         }catch(Exception e){
+            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("result","Test cases could not fetch"));
         }
 
