@@ -40,6 +40,10 @@ function Dashboard() {
         navigate("/login")
     }
 
+    function gotoProbPage(){
+        navigate("/problem")
+    }
+
     if (loading) {
         return <h1>Loading...</h1>
     }
@@ -98,8 +102,9 @@ function Dashboard() {
                     </tbody>
                 </table>
             </div>
-            <div>
+            <div display="flex">
                 <button className="logout-button" onClick={handleLogout}>Log out</button>
+                <button className="logout-button" onClick={gotoProbPage}>Suggest Problem</button>
             </div>
 
         </div>

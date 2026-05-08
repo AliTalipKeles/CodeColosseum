@@ -103,6 +103,7 @@ body {
 }
 
 .logout-button {
+    margin: 5px;
     padding: 10px 18px;
     font-size: 18px;
     font-weight: bold;

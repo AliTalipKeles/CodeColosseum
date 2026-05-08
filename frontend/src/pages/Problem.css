@@ -1,0 +1,112 @@
+.problem-page {
+    background-color: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.form-container {
+    max-width: 800px;
+    width: 100%;
+    padding: 30px;
+    border: 2px solid black;
+    border-radius: 5%;
+    background-color: white;
+    margin: 20px;
+}
+
+.form-title {
+    font-size: 32px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid black;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid hsla(0, 0%, 0%, 0.2);
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: black;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-group select {
+    cursor: pointer;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 8px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 10px;
+}
+
+.submit-button:hover {
+    background-color: black;
+    color: white;
+}
+
+.submit-button:active {
+    transform: scale(0.97);
+}
+
+.cancel-button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid hsla(0, 0%, 0%, 0.3);
+    border-radius: 8px;
+    background-color: white;
+    color: hsla(0, 0%, 0%, 0.6);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-top: 10px;
+}
+
+.cancel-button:hover {
+    background-color: hsla(0, 0%, 0%, 0.05);
+    border-color: hsla(0, 0%, 0%, 0.5);
+    color: black;
+}
+
+.cancel-button:active {
+    transform: scale(0.97);
+}
