@@ -35,6 +35,11 @@ function Dashboard() {
 
     }, [])
 
+    function handleLogout(){
+        localStorage.removeItem("token")
+        navigate("/login")
+    }
+
     if (loading) {
         return <h1>Loading...</h1>
     }
@@ -92,6 +97,9 @@ function Dashboard() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+            <div>
+                <button className="logout-button" onClick={handleLogout}>Log out</button>
             </div>
 
         </div>
