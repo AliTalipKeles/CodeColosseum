@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import "./Dashboard.css"
 import { Link } from "react-router-dom"
 import api from "../services/api"
+import { useNavigate } from "react-router-dom"
 
 function Dashboard() {
 
@@ -9,6 +10,11 @@ function Dashboard() {
     const [leaderboard, setLeaderboard] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const navigate = useNavigate()
+
+    if (localStorage.getItem("token") == null) {
+        navigate("/login")
+    }
 
     useEffect(() => {
 
