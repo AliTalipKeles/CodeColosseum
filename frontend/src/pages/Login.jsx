@@ -24,7 +24,7 @@ function Login() {
 
       setMessage("logged in succesfully")
       setTimeout(() => {
-        navigate("/dashboard")
+        navigate("/")
       }, 500)
 
     } catch (err) {

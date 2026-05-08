@@ -101,3 +101,24 @@ body {
 .third{
     color: #cd7f32;
 }
+
+.logout-button {
+    padding: 10px 18px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid black;
+    border-radius: 8px;
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.logout-button:hover {
+    background-color: black;
+    color: white;
+}
+
+.logout-button:active {
+    transform: scale(0.97);
+}

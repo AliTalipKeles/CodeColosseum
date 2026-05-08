@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import "./Dashboard.css"
 import { Link } from "react-router-dom"
 import api from "../services/api"
+import { useNavigate } from "react-router-dom"
 
 function Dashboard() {
 
@@ -9,6 +10,7 @@ function Dashboard() {
     const [leaderboard, setLeaderboard] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
+    const navigate = useNavigate()
 
     useEffect(() => {
 
@@ -21,6 +23,7 @@ function Dashboard() {
                 setLeaderboard(leaderboard_res.data.data)
 
             } catch (err) {
+                navigate("/login")
                 setError("Failed to load dashboard")
 
             } finally {
@@ -31,6 +34,11 @@ function Dashboard() {
         fetchUser()
 
     }, [])
+
+    function handleLogout(){
+        localStorage.removeItem("token")
+        navigate("/login")
+    }
 
     if (loading) {
         return <h1>Loading...</h1>
@@ -89,6 +97,9 @@ function Dashboard() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+            <div>
+                <button className="logout-button" onClick={handleLogout}>Log out</button>
             </div>
 
         </div>
