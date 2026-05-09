@@ -63,4 +63,9 @@ public class UserRepository {
         String sql = "DELETE FROM users Where username = ?";
         jdbcTemplate.update(sql, username);
     }
+
+    public int getUserElo(String username) {
+        String sql = "SELECT elo_rating FROM users WHERE username = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, username);
+    }
 }
