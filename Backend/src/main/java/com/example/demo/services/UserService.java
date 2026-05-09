@@ -87,4 +87,12 @@ public class UserService {
                 .body(Map.of("result","User deletion failed"));
         }
     }
+
+    public int getUserElo(String username){
+        try {
+            return repository.getUserElo(username);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 }

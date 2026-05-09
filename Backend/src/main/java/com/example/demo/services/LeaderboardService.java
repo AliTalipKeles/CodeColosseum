@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,6 @@ public class LeaderboardService {
     }
 
     public ResponseEntity<?> getLeaderboard(){
-       
         List<UserLeaderboardDto> leaderboard = userRepository.getLeaderboard();
         List<Map<String,Object>> leaderboardHash = new ArrayList<>();
         for(UserLeaderboardDto userInfoDto : leaderboard){
