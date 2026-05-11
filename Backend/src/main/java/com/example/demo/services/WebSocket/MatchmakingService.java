@@ -12,14 +12,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 
 import com.example.demo.dtos.MatchmakingDto;
+import com.example.demo.repositories.MatchRepository;
 
 @Service
 public class MatchmakingService {
 
     private final Queue<MatchmakingDto> waitingQueue;
-
-    public MatchmakingService() {
+    private final MatchRepository matchRepository;
+    public MatchmakingService(MatchRepository matchRepository) {
         this.waitingQueue = new ConcurrentLinkedQueue<>();
+        this.matchRepository = matchRepository;
     }
 
     public void addPlayer(MatchmakingDto player) {
@@ -71,26 +73,45 @@ public class MatchmakingService {
     }
 
     private void notifyMatch(MatchmakingDto p1, MatchmakingDto p2) throws IOException {
-        String matchId = UUID.randomUUID().toString().substring(0, 8);
+        String matchId = UUID.randomUUID().toString();
+        String difficulty;
+        double avarage_elo = (p1.getElo()+p2.getElo())/2;
+        if(avarage_elo <=1200){
+            difficulty = "EASY";
+        }else if( avarage_elo < 1500 && avarage_elo > 1200){
+            difficulty = "MEDIUM";
+        }else if(avarage_elo > 1500){
+            difficulty = "HARD";
+        }else{
+            difficulty = "EASY";
+        }
 
-        String msg1 = String.format(
+        String status = matchRepository.createMatch(matchId, p1.getId(), p2.getId(),difficulty);
+        System.out.println(status);
+        if("Match is created".equals(status)){
+            String msg1 = String.format(
             "{\"event\":\"MATCHED\",\"matchId\":\"%s\",\"opponent\":\"%s\",\"opponentElo\":%d}",
             matchId, p2.getUsername(), p2.getElo()
-        );
-        String msg2 = String.format(
-            "{\"event\":\"MATCHED\",\"matchId\":\"%s\",\"opponent\":\"%s\",\"opponentElo\":%d}",
-            matchId, p1.getUsername(), p1.getElo()
-        );
+            );
+            String msg2 = String.format(
+                "{\"event\":\"MATCHED\",\"matchId\":\"%s\",\"opponent\":\"%s\",\"opponentElo\":%d}",
+                matchId, p1.getUsername(), p1.getElo()
+            );
 
-        p1.getSession().sendMessage(new TextMessage(msg1));
-        p2.getSession().sendMessage(new TextMessage(msg2));
+            p1.getSession().sendMessage(new TextMessage(msg1));
+            p2.getSession().sendMessage(new TextMessage(msg2));
 
-        p1.getSession().close();
-        p2.getSession().close();
+            p1.getSession().close();
+            p2.getSession().close();
 
-        System.out.printf("Eşleşti: %s (elo:%d) vs %s (elo:%d) | matchId: %s%n",
-            p1.getUsername(), p1.getElo(),
-            p2.getUsername(), p2.getElo(), matchId);
+            System.out.printf("Eşleşti: %s (elo:%d) vs %s (elo:%d) | matchId: %s%n",
+                p1.getUsername(), p1.getElo(),
+                p2.getUsername(), p2.getElo(), matchId);
+        }else{
+            addPlayer(p1);
+            addPlayer(p2);
+        }
+        
     }
 
     public boolean isInQueue(String username){
