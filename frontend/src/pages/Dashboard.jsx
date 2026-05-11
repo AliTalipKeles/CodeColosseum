@@ -44,6 +44,10 @@ function Dashboard() {
         navigate("/problem")
     }
 
+    function gotoProbReviewPage(){
+        navigate("/problem_review")
+    }
+
     if (loading) {
         return <h1>Loading...</h1>
     }
@@ -58,7 +62,7 @@ function Dashboard() {
         <div>
             <div className="user-info-card">
                 <div className="user-info-title">
-                    <div className="username">{user.username}</div>
+                    <div className={user.role == "USER" ? "username" : "admin-username"}>{user.username}</div>
                     <div className="id">{user.id}</div>
                     <div className="elo">{user.elo}</div>
                 </div>
@@ -105,6 +109,7 @@ function Dashboard() {
             <div display="flex">
                 <button className="logout-button" onClick={handleLogout}>Log out</button>
                 <button className="logout-button" onClick={gotoProbPage}>Suggest Problem</button>
+                {user.role == "ADMIN" && <button className="logout-button" onClick={gotoProbReviewPage}>Review Problems</button>}
             </div>
 
         </div>

@@ -43,7 +43,7 @@ function Profile() {
         <div>
             <div className="user-info-card">
                 <div className="user-info-title">
-                    <div className="username">{user.username}</div>
+                    <div className={user.role == "USER" ? "username" : "admin-username"}>{user.username}</div>
                     <div className="id">{user.id}</div>
                     <div className="elo">{user.elo}</div>
                 </div>

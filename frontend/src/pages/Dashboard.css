@@ -29,6 +29,11 @@ body {
     font-size: 36px;
 }
 
+.admin-username {
+    color: blue;
+    font-size: 36px;
+}
+
 .id {
     color: hsla(0, 0%, 0%, 0.4);
 }
