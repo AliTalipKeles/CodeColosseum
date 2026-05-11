@@ -54,7 +54,7 @@ public class ProblemController {
         return service.createProblemRequest(proposer_id,dto);
     }
       
-    @GetMapping("/get")
+    @GetMapping("")
     public ResponseEntity<?> getProblems(
                 @RequestParam(required = false) String id,
                 @RequestParam(required = false) String status,
