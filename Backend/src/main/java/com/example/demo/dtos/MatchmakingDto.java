@@ -10,12 +10,14 @@ import lombok.Data;
 @Data
 public class MatchmakingDto {
 
+    private String id;
     private String username;
     private int elo;
     private Instant queueEntryDate;
     private WebSocketSession session;
 
-    public MatchmakingDto(String username, int elo, WebSocketSession session) {
+    public MatchmakingDto(String id,String username, int elo, WebSocketSession session) {
+        this.id = id;
         this.username = username;
         this.elo = elo;
         this.queueEntryDate = Instant.now();

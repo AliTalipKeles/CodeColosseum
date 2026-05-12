@@ -57,8 +57,8 @@ public class MatchmakingHandler extends TextWebSocketHandler {
         }
 
         int elo = userService.getUserElo(username);
-
-        MatchmakingDto player = new MatchmakingDto(username, elo, session);
+        String id = claim.getSubject();
+        MatchmakingDto player = new MatchmakingDto(id,username, elo, session);
         matchmakingService.addPlayer(player);
 
         session.sendMessage(new TextMessage("{\"event\":\"CONNECTED\"}"));
