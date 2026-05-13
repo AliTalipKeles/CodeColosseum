@@ -6,6 +6,7 @@ import Profile from "./pages/Profile"
 import Problem from "./pages/Problem"
 import ProblemReview from "./pages/ProblemReview"
 import ProblemReviewDetail from "./pages/ProblemReviewDetail"
+import MatchPage from "./pages/MatchPage"
 
 function App() {
   return (
@@ -15,8 +16,9 @@ function App() {
       <Route path="/" element={<Dashboard />} />
       <Route path="/user/:username" element={<Profile />} />
       <Route path="/problem" element={<Problem />} />
-      <Route path="/problem_review" element={<ProblemReview/>} />
-      <Route path="/review/:id" element={<ProblemReviewDetail/>} />
+      <Route path="/problem_review" element={<ProblemReview />} />
+      <Route path="/review/:id" element={<ProblemReviewDetail />} />
+      <Route path="/match" element={<MatchPage />} />
     </Routes>
   )
 }

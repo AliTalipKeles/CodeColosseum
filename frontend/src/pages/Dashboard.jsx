@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import "./Dashboard.css"
 import { Link } from "react-router-dom"
 import api from "../services/api"
@@ -11,6 +11,13 @@ function Dashboard() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const navigate = useNavigate()
+
+    // idle, connecting, searching, found, error
+    const [matchmakingStatus, setMatchmakingStatus] = useState('idle')
+    const [matchData, setMatchData] = useState(null)
+    const [queueTime, setQueueTime] = useState(0)
+    const wsRef = useRef(null)
+    const queueTimerRef = useRef(null)
 
     useEffect(() => {
 
@@ -35,17 +42,187 @@ function Dashboard() {
 
     }, [])
 
-    function handleLogout(){
+    useEffect(() => {
+        return () => {
+            if (wsRef.current?.readyState == WebSocket.OPEN) {
+                wsRef.current.close()
+            }
+            if (queueTimerRef.current) {
+                clearInterval(queueTimerRef.current)
+            }
+        }
+    }, [])
+
+    useEffect(() => {
+        if (matchmakingStatus == 'searching') {
+            queueTimerRef.current = setInterval(() => {
+                setQueueTime(prev => prev + 1)
+            }, 1000)
+        } else {
+            if (queueTimerRef.current) {
+                clearInterval(queueTimerRef.current)
+            }
+            setQueueTime(0)
+        }
+
+        return () => {
+            if (queueTimerRef.current) {
+                clearInterval(queueTimerRef.current)
+            }
+        }
+
+    }, [matchmakingStatus])
+
+    function handleLogout() {
         localStorage.removeItem("token")
         navigate("/login")
     }
 
-    function gotoProbPage(){
+    function gotoProbPage() {
         navigate("/problem")
     }
 
-    function gotoProbReviewPage(){
+    function gotoProbReviewPage() {
         navigate("/problem_review")
+    }
+
+    function connectToMatchmaking() {
+        const token = localStorage.getItem("token")
+        if (!token) {
+            setError("Authentication token not found")
+            return
+        }
+
+        setMatchmakingStatus('connecting')
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+        const wsHost = import.meta.env.VITE_WS_URL || 'localhost:8080'
+        const wsUrl = `${wsProtocol}//${wsHost}/matchmaking?token=${token}`
+
+        console.log('Connecting to WebSocket:', wsUrl)
+
+        const ws = new WebSocket(wsUrl)
+        wsRef.current = ws
+
+        ws.onopen = () => {
+            console.log('WebSocket connected')
+            setMatchmakingStatus('searching')
+            setError("")
+        }
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data)
+                console.log('Received message:', data)
+
+                switch (data.event) {
+                    case 'CONNECTED':
+                        console.log('Successfully joined matchmaking queue')
+                        break
+
+                    case 'MATCHED':
+                        setMatchmakingStatus('found')
+                        setMatchData(data)
+                        navigate("/match")
+                        break
+
+                    case 'LEFT':
+                        setMatchmakingStatus('idle')
+                        ws.close()
+                        break
+
+                    case 'ERROR':
+                        setMatchmakingStatus('error')
+                        setError(data.message || 'An error occurred')
+                        break
+
+                    default:
+                        console.log('Unknown event:', data.event)
+                }
+            } catch (err) {
+                console.error('Error parsing message:', err)
+            }
+        }
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error)
+            setMatchmakingStatus('error')
+            setError('Connection error occurred')
+        }
+
+        ws.onclose = (event) => {
+            console.log('WebSocket closed:', event.code, event.reason)
+
+            if (matchmakingStatus !== 'error' && matchmakingStatus !== 'found') {
+                setMatchmakingStatus('idle')
+            }
+
+            if (event.code === 1006) {
+                setError('Connection lost. Please try again.')
+            } else if (event.code === 1003) {
+                setError('Already in queue or invalid connection')
+            }
+        }
+    }
+
+    function leaveMatchmaking() {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ action: 'LEAVE' }))
+        } else {
+            setMatchmakingStatus('idle')
+        }
+    }
+
+    function handleFindMatch() {
+        if (matchmakingStatus === 'idle' || matchmakingStatus === 'error') {
+            connectToMatchmaking()
+        } else if (matchmakingStatus === 'searching') {
+            leaveMatchmaking()
+        }
+    }
+
+    function formatQueueTime(seconds) {
+        const mins = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${mins}:${secs.toString().padStart(2, '0')}`
+    }
+
+    function renderMatchmakingStatus() {
+        switch (matchmakingStatus) {
+            case 'connecting':
+                return <div className="matchmaking-status">Connecting to matchmaking...</div>
+
+            case 'searching':
+                return (
+                    <div className="matchmaking-status searching">
+                        <div className="searching-animation">
+                            <div className="spinner"></div>
+                            <div>Searching for opponent...</div>
+                        </div>
+                        <div className="queue-time">Time in queue: {formatQueueTime(queueTime)}</div>
+                        <div className="elo-range">Your ELO: {user?.elo}</div>
+                    </div>
+                )
+
+            case 'found':
+                return (
+                    <div className="matchmaking-status found">
+                        <div className="match-found-message">Match Found!</div>
+                        {matchData && (
+                            <div className="match-details">
+                                <p>Opponent: {matchData.opponentUsername || 'Loading...'}</p>
+                                <p>Opponent ELO: {matchData.opponentElo || 'N/A'}</p>
+                            </div>
+                        )}
+                    </div>
+                )
+
+            case 'error':
+                return <div className="matchmaking-status error">{error}</div>
+
+            default:
+                return null
+        }
     }
 
     if (loading) {
@@ -71,6 +248,13 @@ function Dashboard() {
                 <div>Email: {user.email}</div>
                 <div>Account date: {normalised_date}</div>
             </div>
+
+            {matchmakingStatus !== 'idle' && (
+                <div className="matchmaking-container">
+                    {renderMatchmakingStatus()}
+                </div>
+            )}
+
             <div className="leaderboard-container">
                 <h2 className="leaderboard-title">Leaderboard</h2>
 
@@ -110,6 +294,13 @@ function Dashboard() {
                 <button className="logout-button" onClick={handleLogout}>Log out</button>
                 <button className="logout-button" onClick={gotoProbPage}>Suggest Problem</button>
                 {user.role == "ADMIN" && <button className="logout-button" onClick={gotoProbReviewPage}>Review Problems</button>}
+                <button
+                    className={`logout-button ${matchmakingStatus === 'searching' ? 'cancel-button' : 'find-match-button'}`}
+                    onClick={handleFindMatch}
+                    disabled={matchmakingStatus === 'connecting' || matchmakingStatus === 'found'}
+                >
+                    {matchmakingStatus === 'searching' ? 'Cancel Search' : 'Find Match'}
+                </button>
             </div>
 
         </div>
