@@ -12,7 +12,6 @@ function Dashboard() {
     const [error, setError] = useState("")
     const navigate = useNavigate()
 
-    // idle, connecting, searching, found, error
     const [matchmakingStatus, setMatchmakingStatus] = useState('idle')
     const [matchData, setMatchData] = useState(null)
     const [queueTime, setQueueTime] = useState(0)
@@ -99,8 +98,6 @@ function Dashboard() {
         const wsHost = import.meta.env.VITE_WS_URL || 'localhost:8080'
         const wsUrl = `${wsProtocol}//${wsHost}/matchmaking?token=${token}`
 
-        console.log('Connecting to WebSocket:', wsUrl)
-
         const ws = new WebSocket(wsUrl)
         wsRef.current = ws
 
@@ -117,13 +114,13 @@ function Dashboard() {
 
                 switch (data.event) {
                     case 'CONNECTED':
-                        console.log('Successfully joined matchmaking queue')
                         break
 
                     case 'MATCHED':
                         setMatchmakingStatus('found')
                         setMatchData(data)
-                        navigate("/match")
+                        localStorage.setItem('matchId', data.matchId)
+                        navigate("/match", { state: { matchId: data.matchId, opponent: data.opponent, opponentElo: data.opponentElo } })
                         break
 
                     case 'LEFT':

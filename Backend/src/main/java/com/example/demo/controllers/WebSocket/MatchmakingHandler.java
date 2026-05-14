@@ -66,6 +66,7 @@ public class MatchmakingHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        @SuppressWarnings("unchecked")
         Map<String, Object> json = mapper.readValue(message.getPayload(), Map.class);
         String action = (String) json.get("action");
 

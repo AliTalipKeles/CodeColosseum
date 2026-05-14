@@ -49,6 +49,7 @@ public class MatchHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         System.out.println("[MESSAGE] sessionId=" + session.getId() + " → " + message.getPayload());
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> payload = objectMapper.readValue(message.getPayload(), Map.class);
         String type = (String) payload.get("type");
 

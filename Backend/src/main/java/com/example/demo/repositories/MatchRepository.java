@@ -1,8 +1,6 @@
 package com.example.demo.repositories;
 
 import java.util.UUID;
-
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
