@@ -53,7 +53,6 @@ public class ProblemController {
 
         return service.createProblemRequest(proposer_id,dto);
     }
-      
     @GetMapping("")
     public ResponseEntity<?> getProblems(
                 @RequestParam(required = false) String id,
@@ -76,7 +75,7 @@ public class ProblemController {
         if(id == null){
             return service.getProblems(status, difficulty);
         }
-        return service.getProblem(UUID.fromString(id));    
+        return service.getProblem(UUID.fromString(id));
     }
 
     @PutMapping("setapproved/{title}")
