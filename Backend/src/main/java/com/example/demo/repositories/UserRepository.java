@@ -68,4 +68,8 @@ public class UserRepository {
         String sql = "SELECT elo_rating FROM users WHERE username = ?";
         return jdbcTemplate.queryForObject(sql, Integer.class, username);
     }
+    public int getUserElo(UUID id) {
+        String sql = "SELECT elo_rating FROM users WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, id);
+    }
 }
