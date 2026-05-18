@@ -47,8 +47,8 @@ public class MatchService {
         return match;
     }
 
-    public void removeMatch(String userId) {
-        MatchDto match = userMatchMap.get(UUID.fromString(userId));
+    public void removeMatch(UUID userId) {
+        MatchDto match = userMatchMap.get(userId);
         if (match == null) {
             System.out.println("[MATCH] Match not found to remove: userId=" + userId);
             return;

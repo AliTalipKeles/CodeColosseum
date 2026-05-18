@@ -18,6 +18,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.example.demo.dtos.GetProblemDto;
 import com.example.demo.dtos.MatchDto;
 import com.example.demo.dtos.TestCaseDto;
+import com.example.demo.repositories.MatchRepository;
 import com.example.demo.repositories.ProblemRepository;
 import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.RatingService;
@@ -32,15 +33,17 @@ public class MatchHandler extends TextWebSocketHandler {
     private final ConcurrentHashMap<String, WebSocketSession> pendingSessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WebSocketSession> authenticatedSessions = new ConcurrentHashMap<>();
     private final MatchService matchService;
+    private final MatchRepository matchRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
     private final RatingService ratingService;
 
-    public MatchHandler(MatchService matchService,ProblemRepository problemRepository,UserRepository userRepository,RatingService ratingService) {
+    public MatchHandler(MatchService matchService,MatchRepository matchRepository,ProblemRepository problemRepository,UserRepository userRepository,RatingService ratingService) {
         this.matchService = matchService;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
         this.ratingService = ratingService;
+        this.matchRepository = matchRepository;
     }
 
     @Override
@@ -136,7 +139,7 @@ public class MatchHandler extends TextWebSocketHandler {
             }
             case "submission" -> {
                 System.out.println("[GAME] Submission received,userId=" + userId);
-                
+                submissionCheck(session, payload);
             }
             default -> {
                 System.out.println("[GAME] Unknown message type: " + type);
@@ -211,16 +214,32 @@ public class MatchHandler extends TextWebSocketHandler {
         MatchDto match = matchService.getMatch(userId.toString());
         List<TestCaseDto> testcases = problemRepository.getTestCases(match.getProblem_id());
         int tests_passed = 0;
+        String verdict = "ACCEPTED";
         for(TestCaseDto testcase: testcases){
-            //Buraya Judge0 Apı i gelecek ve bütün test_caseleri geçirecek eğer biri bile error verirse direkt kullanıcıya 
-            // nerede hata yaptığını söyleyen mesaj döndürüp bitirecek 
+            //Buraya Judge0 Apı i gelecek ve bütün test_caseleri geçirecek eğer biri bile error verirse direkt kullanıcıya
+            // nerede hata yaptığını söyleyen mesaj döndürüp bitirecek
             tests_passed++;
         }
         if(tests_passed == testcases.size()){
             UUID opponent = matchService.findOpponentId(userId.toString());
+            System.out.println(opponent.toString());
             int rating_change = ratingService.calculateRatingChange(userId, opponent, matchId, 1);
-            session.sendMessage(new TextMessage("{\"type\":\"WİN\",\"rating_change\":\"" + rating_change + "\"}"));
+            Map<String,String> msg = new HashMap<>();
+            msg.put("type", "WIN");
+            msg.put("rating_change", String.valueOf(rating_change));
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg)));
+            Map<String,String> msg2 = new HashMap<>();
+            msg2.put("type", "LOSE");
+            msg2.put("rating_change", String.valueOf("-"+rating_change));
+            System.out.println(authenticatedSessions.toString());
+            authenticatedSessions.get(String.valueOf(opponent)).sendMessage(new TextMessage(objectMapper.writeValueAsString(msg2)));
+            matchService.removeMatch(userId);
+            authenticatedSessions.get(String.valueOf(opponent)).close();
+            session.close();
+            
         }
+
+        matchRepository.createSubmission(userId,matchId,source_code,language,verdict,tests_passed);
     }
     
 }

@@ -1,6 +1,7 @@
 package com.example.demo.repositories;
 
 import java.util.UUID;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -49,5 +50,11 @@ public class MatchRepository {
             return dto;
         });
         return matchDto;
+    }
+
+    public void createSubmission(UUID userId,UUID matchId,String source_code,String language,String verdict,int tests_passed){
+        
+        String sql = "INSERT INTO submissions (id,user_id,match_id,source_code,language,verdict,tests_passed) VALUES(?,?,?,?,?::submission_language,?::submission_verdict,?)";
+        jdbcTemplate.update(sql,UUID.randomUUID(),userId,matchId,source_code,language,verdict,tests_passed);
     }
 }

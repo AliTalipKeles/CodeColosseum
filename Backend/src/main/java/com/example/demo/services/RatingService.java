@@ -43,8 +43,10 @@ public class RatingService {
 
     ratingRepository.createRatingHistory(user1, matchId, elo1, newElo1);
     ratingRepository.createRatingHistory(user2, matchId, elo2, newElo2);
+    ratingRepository.updateUserElo(user1, newElo1);
+    ratingRepository.updateUserElo(user2, newElo2);
 
-    return newElo1 - elo1; 
+    return newElo1 - elo1;
     }
     
 }
