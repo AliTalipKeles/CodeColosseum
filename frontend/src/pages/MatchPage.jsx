@@ -6,7 +6,13 @@ function MatchPage() {
     const location = useLocation()
     const matchId = location.state?.matchId || localStorage.getItem('currentMatchId')
     const token = localStorage.getItem('token')
-    
+
+    const supportedLanguages = {
+        "JAVA": 62,
+        "PYTHON": 71
+    }
+    const [selectedLanguage, setSelectedLanguage] = useState(62)
+    const [sourceCode, setSourceCode] = useState("")
     const [problem, setProblem] = useState(null)
     const [testCases, setTestCases] = useState([])
     const [connectionStatus, setConnectionStatus] = useState('connecting')
@@ -23,7 +29,7 @@ function MatchPage() {
         ws.onopen = () => {
             console.log('Match WebSocket connected')
             setConnectionStatus('authenticating')
-            
+
             // Send auth message
             ws.send(JSON.stringify({
                 type: 'auth',
@@ -91,6 +97,10 @@ function MatchPage() {
         }
     }, [matchId, token])
 
+    function handleSubmission() {
+        console.log(sourceCode)
+    }
+
     if (connectionStatus === 'connecting' || connectionStatus === 'authenticating') {
         return <div className="loading">Connecting to match...</div>
     }
@@ -120,11 +130,11 @@ function MatchPage() {
                             {problem.difficulty}
                         </div>
                     </div>
-                    
+
                     <div className="problem-id">
                         {problem.id}
                     </div>
-                    
+
                     <div className="problem-info">
                         <div>
                             <strong>Time Limit:</strong> {problem.timeLimit}s
@@ -170,13 +180,13 @@ function MatchPage() {
                             {testCases.map((testCase, index) => (
                                 <div key={testCase.id} className="test-case-card">
                                     <h4>Test Case {index + 1}</h4>
-                                    
+
                                     <div className="test-case-content">
                                         <div className="test-input">
                                             <strong>Input:</strong>
                                             <pre>{testCase.stdin}</pre>
                                         </div>
-                                        
+
                                         <div className="test-output">
                                             <strong>Expected Output:</strong>
                                             <pre>{testCase.expected_stdout}</pre>
@@ -189,15 +199,32 @@ function MatchPage() {
                 )}
 
                 <div className="code-editor-section">
-                    <h2>Your Solution</h2>
-                    {/* Add your code editor component here */}
-                    <textarea 
-                        className="code-editor" 
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2>Your Solution</h2>
+                        <select
+                            value={selectedLanguage}
+                            onChange={(e) => setSelectedLanguage(Number(e.target.value))}
+                            className="language-select"
+                        >
+                            {Object.entries(supportedLanguages).map(([name, id]) => (
+                                <option key={id} value={id}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <textarea
+                        className="code-editor"
+                        value={sourceCode}
+                        onChange={(e) => setSourceCode(e.target.value)}
                         placeholder="Write your solution here..."
+                        rows={15}
+                        style={{ width: '100%' }}
                     />
-                    
+
                     <div className="submit-section">
-                        <button className="submit-button">
+                        <button className="submit-button" onClick={handleSubmission}>
                             Submit Solution
                         </button>
                     </div>
