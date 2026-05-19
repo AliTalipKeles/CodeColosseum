@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
 import com.example.demo.dtos.GetProblemDto;
 import com.example.demo.dtos.MatchDto;
 import com.example.demo.dtos.TestCaseDto;
@@ -24,8 +24,9 @@ import com.example.demo.repositories.UserRepository;
 import com.example.demo.services.RatingService;
 import com.example.demo.services.WebSocket.MatchService;
 import com.example.demo.util.JwtUtil;
-
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+
 @Component
 public class MatchHandler extends TextWebSocketHandler {
 
@@ -35,13 +36,21 @@ public class MatchHandler extends TextWebSocketHandler {
     private final MatchService matchService;
     private final MatchRepository matchRepository;
     private final ProblemRepository problemRepository;
-    private final UserRepository userRepository;
     private final RatingService ratingService;
 
-    public MatchHandler(MatchService matchService,MatchRepository matchRepository,ProblemRepository problemRepository,UserRepository userRepository,RatingService ratingService) {
+    private final Map<String, Integer> LanguageMap = Map.of("JAVA", 62, "PYTHON", 71);
+    List<String> validStatuses = List.of(
+            "ACCEPTED",
+            "WRONG_ANSWER",
+            "TIME_LIMIT",
+            "MEMORY_LIMIT",
+            "RUNTIME_ERROR",
+            "COMPILATION_ERROR");
+
+    public MatchHandler(MatchService matchService, MatchRepository matchRepository, ProblemRepository problemRepository,
+            UserRepository userRepository, RatingService ratingService) {
         this.matchService = matchService;
         this.problemRepository = problemRepository;
-        this.userRepository = userRepository;
         this.ratingService = ratingService;
         this.matchRepository = matchRepository;
     }
@@ -114,10 +123,10 @@ public class MatchHandler extends TextWebSocketHandler {
             Map<String, Object> map = problemDto.toMap();
             map.put("type", "problem_info");
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(map)));
-            List<TestCaseDto> testcases = problemRepository.getTestCases(matchDto.getProblem_id(),3);
-            Map<String, Object> testcasemap =  new HashMap<>();
+            List<TestCaseDto> testcases = problemRepository.getTestCases(matchDto.getProblem_id(), 3);
+            Map<String, Object> testcasemap = new HashMap<>();
             testcasemap.put("type", "testcases_info");
-            testcasemap.put("test_cases" ,testcases);
+            testcasemap.put("test_cases", testcases);
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(testcasemap)));
 
         } catch (Exception e) {
@@ -160,7 +169,8 @@ public class MatchHandler extends TextWebSocketHandler {
             try {
                 System.out.println("[OPPONENT] Sending message: " + userId + " → " + opponentId);
                 opponentSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         } else {
             System.out.println("[OPPONENT] Opponent not connected: opponentId=" + opponentId);
         }
@@ -177,7 +187,8 @@ public class MatchHandler extends TextWebSocketHandler {
                 try {
                     sendError(session, "auth_timeout");
                     session.close(CloseStatus.POLICY_VIOLATION);
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
                 pendingSessions.remove(session.getId());
             }
         });
@@ -189,7 +200,7 @@ public class MatchHandler extends TextWebSocketHandler {
         String userId = (String) session.getAttributes().get("userId");
         if (userId != null) {
             authenticatedSessions.remove(userId);
-            sendToOpponent(userId, Map.of("type","opponent_Disconnected"));
+            sendToOpponent(userId, Map.of("type", "opponent_Disconnected"));
             System.out.println("[CLOSED] userId=" + userId + " disconnected, reason: " + status);
         } else {
             System.out.println("[CLOSED] Unauthenticated session closed: sessionId=" + session.getId());
@@ -201,45 +212,90 @@ public class MatchHandler extends TextWebSocketHandler {
         if (session.isOpen()) {
             System.out.println("[ERROR] Sending error: sessionId=" + session.getId() + " message=" + message);
             session.sendMessage(new TextMessage(
-                "{\"type\":\"error\",\"message\":\"" + message + "\"}"
-            ));
+                    "{\"type\":\"error\",\"message\":\"" + message + "\"}"));
         }
     }
 
-    private void submissionCheck(WebSocketSession session, Map<String,Object> payload)throws IOException{
-        String source_code = (String)payload.get("source_code");
-        String language = (String)payload.get("language");
-        UUID userId = UUID.fromString((String)session.getAttributes().get("userId"));
-        UUID matchId = UUID.fromString((String)session.getAttributes().get("matchId"));
+    private void submissionCheck(WebSocketSession session, Map<String, Object> payload) throws IOException {
+        String source_code = (String) payload.get("source_code");
+        String language = (String) payload.get("language");
+        UUID userId = UUID.fromString((String) session.getAttributes().get("userId"));
+        UUID matchId = UUID.fromString((String) session.getAttributes().get("matchId"));
         MatchDto match = matchService.getMatch(userId.toString());
         List<TestCaseDto> testcases = problemRepository.getTestCases(match.getProblem_id());
         int tests_passed = 0;
-        String verdict = "ACCEPTED";
-        for(TestCaseDto testcase: testcases){
-            //Buraya Judge0 Apı i gelecek ve bütün test_caseleri geçirecek eğer biri bile error verirse direkt kullanıcıya
-            // nerede hata yaptığını söyleyen mesaj döndürüp bitirecek
-            tests_passed++;
+        String verdict = "";
+
+        int LanguageId = LanguageMap.get(language);
+
+        RestClient judgeApi = RestClient.create();
+        Map<String, Object> body = new HashMap<>();
+        body.put("source_code", source_code);
+        body.put("language_id", LanguageId);
+
+        int testcasenum = 0;
+        for (TestCaseDto testcase : testcases) {
+            testcasenum++;
+            body.put("stdin", testcase.getStdin());
+            body.put("expected_output", testcase.getExpected_stdout());
+
+            JsonNode responseBody = judgeApi.post()
+                    .uri("http://localhost:2358/submissions/?base64_encoded=false&wait=true")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(objectMapper.writeValueAsString(body))
+                    .retrieve()
+                    .body(JsonNode.class);
+
+            if (responseBody != null && responseBody.has("status")) {
+                String StatusDescription = responseBody.path("status").path("description").asString();
+                if (StatusDescription.equals("Accepted")) {
+                    verdict = "ACCEPTED";
+                    tests_passed++;
+                } else {
+                    System.out.println("test " + testcasenum + " failed with status: " + StatusDescription);
+
+                    if (validStatuses.contains(StatusDescription.toUpperCase())) {
+                        verdict = StatusDescription.toUpperCase();
+                    } else {
+                        verdict = "RUNTIME_ERROR";
+                    }
+
+                    Map<String, Object> failureMsg = new HashMap<>();
+                    failureMsg.put("type", "SUBMISSION_FAILED");
+                    failureMsg.put("test_case_number", testcasenum);
+                    failureMsg.put("status", StatusDescription);
+                    failureMsg.put("message", "Test " + testcasenum + " failed with status: " + StatusDescription);
+
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(failureMsg)));
+
+                    break;
+                }
+            } else {
+                break;
+            }
+
         }
-        if(tests_passed == testcases.size()){
+        if (tests_passed == testcases.size()) {
             UUID opponent = matchService.findOpponentId(userId.toString());
             System.out.println(opponent.toString());
             int rating_change = ratingService.calculateRatingChange(userId, opponent, matchId, 1);
-            Map<String,String> msg = new HashMap<>();
+            Map<String, String> msg = new HashMap<>();
             msg.put("type", "WIN");
             msg.put("rating_change", String.valueOf(rating_change));
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(msg)));
-            Map<String,String> msg2 = new HashMap<>();
+            Map<String, String> msg2 = new HashMap<>();
             msg2.put("type", "LOSE");
-            msg2.put("rating_change", String.valueOf("-"+rating_change));
+            msg2.put("rating_change", String.valueOf("-" + rating_change));
             System.out.println(authenticatedSessions.toString());
-            authenticatedSessions.get(String.valueOf(opponent)).sendMessage(new TextMessage(objectMapper.writeValueAsString(msg2)));
+            authenticatedSessions.get(String.valueOf(opponent))
+                    .sendMessage(new TextMessage(objectMapper.writeValueAsString(msg2)));
             matchService.removeMatch(userId);
             authenticatedSessions.get(String.valueOf(opponent)).close();
             session.close();
-            
+
         }
 
-        matchRepository.createSubmission(userId,matchId,source_code,language,verdict,tests_passed);
+        matchRepository.createSubmission(userId, matchId, source_code, language, verdict, tests_passed);
     }
-    
+
 }
