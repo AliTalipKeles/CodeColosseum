@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from "react"
-import { useLocation } from "react-router-dom"
+import { Navigate, useLocation, useNavigate } from "react-router-dom"
 import "./Problem.css"
 
 function MatchPage() {
     const location = useLocation()
     const matchId = location.state?.matchId || localStorage.getItem('currentMatchId')
     const token = localStorage.getItem('token')
+    const navigate = useNavigate()
 
     const supportedLanguages = [
         "JAVA",
@@ -71,7 +72,18 @@ function MatchPage() {
                         console.error('Error:', data.message)
                         setConnectionStatus('error')
                         break
-
+                    case 'WIN':
+                    case 'LOSE':
+                        alert(data.type, data.status, data.message)
+                        navigate("/")
+                        break
+                    case 'WRONG_ANSWER':
+                        alert(data.type, data.status + " " + data.message + " " + data.expected_stdout + " " + data.user_stdin)
+                        break;
+                    case 'RUNTIME_ERROR':
+                    case 'SUBMISSION_FAILED':
+                        alert(data.type, data.status + " " + data.message)
+                        break;
                     default:
                         console.log('Unknown message type:', data.type)
                 }

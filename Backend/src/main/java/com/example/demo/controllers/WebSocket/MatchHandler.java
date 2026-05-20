@@ -263,12 +263,13 @@ public class MatchHandler extends TextWebSocketHandler {
 
                     Map<String, Object> failureMsg = new HashMap<>();
                     failureMsg.put("type", "SUBMISSION_FAILED");
-                    failureMsg.put("test_case_number", testcasenum);
                     failureMsg.put("status", StatusDescription);
                     failureMsg.put("message", "Test " + testcasenum + " failed with status: " + StatusDescription);
-
+                    if(verdict.equals("WRONG_ANSWER")){
+                        failureMsg.put("user_stdout", responseBody.path("stdout").asString());
+                        failureMsg.put("expected_stdout", testcase.getExpected_stdout());
+                    }
                     session.sendMessage(new TextMessage(objectMapper.writeValueAsString(failureMsg)));
-
                     break;
                 }
             } else {
