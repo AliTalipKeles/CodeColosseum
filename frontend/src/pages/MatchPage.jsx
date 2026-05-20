@@ -7,11 +7,11 @@ function MatchPage() {
     const matchId = location.state?.matchId || localStorage.getItem('currentMatchId')
     const token = localStorage.getItem('token')
 
-    const supportedLanguages = {
-        "JAVA": 62,
-        "PYTHON": 71
-    }
-    const [selectedLanguage, setSelectedLanguage] = useState(62)
+    const supportedLanguages = [
+        "JAVA",
+        "PYTHON"
+    ]
+    const [selectedLanguage, setSelectedLanguage] = useState("JAVA")
     const [sourceCode, setSourceCode] = useState("")
     const [problem, setProblem] = useState(null)
     const [testCases, setTestCases] = useState([])
@@ -98,7 +98,11 @@ function MatchPage() {
     }, [matchId, token])
 
     function handleSubmission() {
-        console.log(sourceCode)
+        wsRef.current.send(JSON.stringify({
+            type: 'submission',
+            language: selectedLanguage,
+            source_code: sourceCode
+        }))
     }
 
     if (connectionStatus === 'connecting' || connectionStatus === 'authenticating') {
@@ -203,11 +207,11 @@ function MatchPage() {
                         <h2>Your Solution</h2>
                         <select
                             value={selectedLanguage}
-                            onChange={(e) => setSelectedLanguage(Number(e.target.value))}
+                            onChange={(e) => setSelectedLanguage((e.target.value))}
                             className="language-select"
                         >
-                            {Object.entries(supportedLanguages).map(([name, id]) => (
-                                <option key={id} value={id}>
+                            {Object.entries(supportedLanguages).map(([id, name]) => (
+                                <option key={name} value={name}>
                                     {name}
                                 </option>
                             ))}

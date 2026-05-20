@@ -219,6 +219,7 @@ public class MatchHandler extends TextWebSocketHandler {
     private void submissionCheck(WebSocketSession session, Map<String, Object> payload) throws IOException {
         String source_code = (String) payload.get("source_code");
         String language = (String) payload.get("language");
+        System.out.println("source_code:" + source_code + "\nlanguage:" + language);
         UUID userId = UUID.fromString((String) session.getAttributes().get("userId"));
         UUID matchId = UUID.fromString((String) session.getAttributes().get("matchId"));
         MatchDto match = matchService.getMatch(userId.toString());
@@ -254,8 +255,8 @@ public class MatchHandler extends TextWebSocketHandler {
                 } else {
                     System.out.println("test " + testcasenum + " failed with status: " + StatusDescription);
 
-                    if (validStatuses.contains(StatusDescription.toUpperCase())) {
-                        verdict = StatusDescription.toUpperCase();
+                    if (validStatuses.contains(StatusDescription.toUpperCase().replace(' ', '_'))) {
+                        verdict = StatusDescription.toUpperCase().replace(' ', '_');
                     } else {
                         verdict = "RUNTIME_ERROR";
                     }
