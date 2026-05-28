@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -21,10 +19,11 @@ import com.example.demo.dtos.TestCaseDto;
 import com.example.demo.repositories.MatchRepository;
 import com.example.demo.repositories.ProblemRepository;
 import com.example.demo.repositories.UserRepository;
+import com.example.demo.services.JudgeService;
 import com.example.demo.services.RatingService;
+import com.example.demo.services.SubmissionResult;
 import com.example.demo.services.WebSocket.MatchService;
 import com.example.demo.util.JwtUtil;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 @Component
@@ -37,22 +36,15 @@ public class MatchHandler extends TextWebSocketHandler {
     private final MatchRepository matchRepository;
     private final ProblemRepository problemRepository;
     private final RatingService ratingService;
-
-    private final Map<String, Integer> LanguageMap = Map.of("JAVA", 62, "PYTHON", 71);
-    List<String> validStatuses = List.of(
-            "ACCEPTED",
-            "WRONG_ANSWER",
-            "TIME_LIMIT",
-            "MEMORY_LIMIT",
-            "RUNTIME_ERROR",
-            "COMPILATION_ERROR");
+    private final JudgeService judgeService;
 
     public MatchHandler(MatchService matchService, MatchRepository matchRepository, ProblemRepository problemRepository,
-            UserRepository userRepository, RatingService ratingService) {
+            UserRepository userRepository, RatingService ratingService, JudgeService judgeService) {
         this.matchService = matchService;
         this.problemRepository = problemRepository;
         this.ratingService = ratingService;
         this.matchRepository = matchRepository;
+        this.judgeService = judgeService;
     }
 
     @Override
@@ -224,60 +216,10 @@ public class MatchHandler extends TextWebSocketHandler {
         UUID matchId = UUID.fromString((String) session.getAttributes().get("matchId"));
         MatchDto match = matchService.getMatch(userId.toString());
         List<TestCaseDto> testcases = problemRepository.getTestCases(match.getProblem_id());
-        int tests_passed = 0;
-        String verdict = "";
 
-        int LanguageId = LanguageMap.get(language);
+        SubmissionResult result = judgeService.evaluate(source_code, language, testcases);
 
-        RestClient judgeApi = RestClient.create();
-        Map<String, Object> body = new HashMap<>();
-        body.put("source_code", source_code);
-        body.put("language_id", LanguageId);
-
-        int testcasenum = 0;
-        for (TestCaseDto testcase : testcases) {
-            testcasenum++;
-            body.put("stdin", testcase.getStdin());
-            body.put("expected_output", testcase.getExpected_stdout());
-
-            JsonNode responseBody = judgeApi.post()
-                    .uri("http://localhost:2358/submissions/?base64_encoded=false&wait=true")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(objectMapper.writeValueAsString(body))
-                    .retrieve()
-                    .body(JsonNode.class);
-
-            if (responseBody != null && responseBody.has("status")) {
-                String StatusDescription = responseBody.path("status").path("description").asString();
-                if (StatusDescription.equals("Accepted")) {
-                    verdict = "ACCEPTED";
-                    tests_passed++;
-                } else {
-                    System.out.println("test " + testcasenum + " failed with status: " + StatusDescription);
-
-                    if (validStatuses.contains(StatusDescription.toUpperCase().replace(' ', '_'))) {
-                        verdict = StatusDescription.toUpperCase().replace(' ', '_');
-                    } else {
-                        verdict = "RUNTIME_ERROR";
-                    }
-
-                    Map<String, Object> failureMsg = new HashMap<>();
-                    failureMsg.put("type", "SUBMISSION_FAILED");
-                    failureMsg.put("status", StatusDescription);
-                    failureMsg.put("message", "Test " + testcasenum + " failed with status: " + StatusDescription);
-                    if(verdict.equals("WRONG_ANSWER")){
-                        failureMsg.put("user_stdout", responseBody.path("stdout").asString());
-                        failureMsg.put("expected_stdout", testcase.getExpected_stdout());
-                    }
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(failureMsg)));
-                    break;
-                }
-            } else {
-                break;
-            }
-
-        }
-        if (tests_passed == testcases.size()) {
+        if (result.isWin()) {
             UUID opponent = matchService.findOpponentId(userId.toString());
             System.out.println(opponent.toString());
             int rating_change = ratingService.calculateRatingChange(userId, opponent, matchId, 1);
@@ -294,10 +236,19 @@ public class MatchHandler extends TextWebSocketHandler {
             matchService.removeMatch(userId);
             authenticatedSessions.get(String.valueOf(opponent)).close();
             session.close();
-
+        } else {
+            System.out.println("test " + result.failedTestNumber() + " failed with status: " + result.rawStatusDescription());
+            Map<String, Object> failureMsg = new HashMap<>();
+            failureMsg.put("type", "SUBMISSION_FAILED");
+            failureMsg.put("status", result.rawStatusDescription());
+            failureMsg.put("message", "Test " + result.failedTestNumber() + " failed with status: " + result.rawStatusDescription());
+            if ("WRONG_ANSWER".equals(result.verdict())) {
+                failureMsg.put("expected_stdout", result.failedExpectedStdout());
+            }
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(failureMsg)));
         }
 
-        matchRepository.createSubmission(userId, matchId, source_code, language, verdict, tests_passed);
+        matchRepository.createSubmission(userId, matchId, source_code, language, result.verdict(), result.testsPassed());
     }
 
 }
