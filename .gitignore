@@ -42,3 +42,7 @@ secrets.yml
 .git-hooks/
 node_modules
 /.kotlin/
+
+#docs
+docs/course guideline for project/
+docs/lecture slides/
