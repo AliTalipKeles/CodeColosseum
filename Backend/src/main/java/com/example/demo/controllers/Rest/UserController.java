@@ -99,7 +99,7 @@ public class UserController {
         Claims claim = JwtUtil.validateToken(token);
 
         if(claim == null){
-            return ResponseEntity.status(200).body(Map.of("result","Your Authorization expried"));
+            return ResponseEntity.status(401).body(Map.of("result","Your Authorization expried"));
         }
 
         String username = (String)claim.get("username");
